@@ -14,5 +14,5 @@ This is a React application that includes a particle background, a title, and so
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/itsAmeerHamza/portfolio.git
+   git clone https://github.com/itsAmeerHamza/Showcase.git
    ```
