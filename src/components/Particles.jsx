@@ -1,9 +1,11 @@
 import Particles, { initParticlesEngine } from "@tsparticles/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { loadSlim } from "@tsparticles/slim";
 
 const ParticlesComponent = (props) => {
   const [init, setInit] = useState(false);
+  const clickCountRef = useRef(0);
+  const lastClickTimeRef = useRef(0);
 
   useEffect(() => {
     initParticlesEngine(async (engine) => {
@@ -15,6 +17,29 @@ const ParticlesComponent = (props) => {
 
   const particlesLoaded = (container) => {
     console.log(container);
+  };
+
+  const handleClick = (event) => {
+    const now = Date.now();
+    const timeSinceLastClick = now - lastClickTimeRef.current;
+    
+    // Throttle clicks - only allow 1 click per 500ms
+    if (timeSinceLastClick < 500) {
+      return;
+    }
+    
+    // Limit total clicks - max 5 particles can be added
+    if (clickCountRef.current >= 5) {
+      return;
+    }
+    
+    lastClickTimeRef.current = now;
+    clickCountRef.current += 1;
+    
+    // Reset click count after 5 seconds
+    setTimeout(() => {
+      clickCountRef.current = Math.max(0, clickCountRef.current - 1);
+    }, 5000);
   };
 
   const options = useMemo(
@@ -39,10 +64,11 @@ const ParticlesComponent = (props) => {
             enable: true,
           },
         },
+        detectOn: "canvas",
         modes: {
           push: {
-            quantity: 2,
-            duration: 0.4,
+            quantity: 1,
+            duration: 0.3,
           },
           repulse: {
             distance: 80,
@@ -78,7 +104,8 @@ const ParticlesComponent = (props) => {
             enable: true,
             area: 1000,
           },
-          value: 50,
+          value: 30,
+          limit: 60,
         },
         opacity: {
           value: { min: 0.1, max: 0.5 },
@@ -101,12 +128,22 @@ const ParticlesComponent = (props) => {
         },
       },
       detectRetina: true,
+      pauseOnBlur: true,
+      pauseOnOutsideViewport: true,
+      smooth: true,
     }),
     []
   );
 
   if (init) {
-    return <Particles id={props.id} init={particlesLoaded} options={options} />;
+    return (
+      <Particles 
+        id={props.id} 
+        init={particlesLoaded} 
+        options={options}
+        onClick={handleClick}
+      />
+    );
   }
 
   return <></>;
